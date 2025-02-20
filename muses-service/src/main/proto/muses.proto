@@ -1,0 +1,61 @@
+syntax = "proto3";
+//指定 proto3 版本，这个注释不能放在第一行，否则报错
+
+option java_package = "com.muses.service.grpc";
+// 生成多个java文件
+option java_multiple_files = true;
+
+option go_package = "proto_generated/pb";
+package pb;
+
+//=================================================请求Req===============================================================
+message MessRequest{
+    string str = 1;
+}
+
+message MessResponse {
+
+    // 状态
+    int32 status = 1;
+
+    // 消息
+    string msg = 2;
+
+    // 数据
+    string data = 3;
+}
+
+message Person{
+    string name = 1;
+    int64 age = 2;
+    double length = 3;
+}
+
+message QueryFileInfoReq{
+    repeated QueryFileInfo query_file_info_list = 1;
+}
+
+message QueryFileInfo{
+    string id = 1;
+    int32 preview_expire_seconds = 2;
+}
+//=================================================请求Req===============================================================
+//=================================================请求Rsp===============================================================
+message QueryFileInfoRsp{
+    repeated FileStoreInfo file_store_info_list = 1;
+}
+message FileStoreInfo{
+    string id = 1;
+    string url = 2;
+}
+// =================================================请求Rsp===============================================================
+// =================================================注册rpc==============================================================
+
+service MyHello{
+    rpc sayHello(Person) returns (Person);
+}
+
+service FileStoreService{
+    rpc queryVisitUrl(QueryFileInfoReq) returns (QueryFileInfoRsp);
+}
+

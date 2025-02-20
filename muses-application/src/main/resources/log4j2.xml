@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration status="info">
+    <Properties>
+        <!-- 声明日志文件存储的目录 -->
+        <Property name="LOG_HOME">logs</Property>
+        <Property name="LOG_PATTERN"
+                  value="%date{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread][%class{36}:%line] %c{1}:%L - %msg%n%ex">
+        </Property>
+    </Properties>
+    <Appenders>
+        <!--输出控制台的配置-->
+        <Console name="Console" target="SYSTEM_OUT">
+            <!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
+            <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
+            <!-- 输出日志的格式-->
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </Console>
+        <!-- INFO级别日志 -->
+        <RollingFile name="infoAppender" fileName="${LOG_HOME}/info.log"
+                     filePattern="${LOG_HOME}/%d{yyyy-MM}/%d{yyyy-MM-dd}_info.log">
+            <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+        </RollingFile>
+        <!-- ERROR级别日志 -->
+        <RollingFile name="errorAppender" fileName="${LOG_HOME}/error.log"
+                     filePattern="${LOG_HOME}/%d{yyyy-MM}/%d{yyyy-MM-dd}_error.log">
+            <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="infoAppender"/>
+            <AppenderRef ref="errorAppender"/>
+        </Root>
+    </Loggers>
+
+</configuration>

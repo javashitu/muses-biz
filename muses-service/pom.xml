@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>muses-biz</artifactId>
+        <groupId>com.muses</groupId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+    <artifactId>muses-service</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!--        编译乱码靠这个解决-->
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <maven.build.encoding>UTF-8</maven.build.encoding>
+
+
+        <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
+        <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
+        <protoc.version>3.25.3</protoc.version>
+        <protobuf.java.version>3.25.3</protobuf.java.version>
+        <grpc-java.version>1.64.0</grpc-java.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.muses</groupId>
+            <artifactId>muses-adapter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.muses</groupId>
+            <artifactId>muses-persistence</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>protobuf-java</artifactId>
+                    <groupId>com.google.protobuf</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.5.3.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>1.5.3.Final</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.hankcs</groupId>
+            <artifactId>hanlp</artifactId>
+            <version>portable-1.8.4</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>${protobuf.java.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+            <version>${protobuf.java.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.salesforce.servicelibs</groupId>
+            <artifactId>jprotoc</artifactId>
+            <version>1.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>net.devh</groupId>
+            <!--            <artifactId>grpc-server-spring-boot-starter</artifactId>-->
+            <artifactId>grpc-client-spring-boot-starter</artifactId>
+            <version>3.0.0.RELEASE</version>
+        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>com.google.protobuf</groupId>-->
+        <!--            <artifactId>protobuf-java</artifactId>-->
+        <!--            <version>${protobuf.java.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.google.protobuf</groupId>-->
+        <!--            <artifactId>protobuf-java-util</artifactId>-->
+        <!--            <version>${protobuf.java.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.salesforce.servicelibs</groupId>-->
+        <!--            <artifactId>jprotoc</artifactId>-->
+        <!--            <version>1.2.2</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>net.devh</groupId>-->
+        <!--            <artifactId>grpc-server-spring-boot-starter</artifactId>-->
+        <!--            <version>3.0.0.RELEASE</version>-->
+        <!--        </dependency>-->
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+<!--            <version>4.13.2</version>-->
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>${os-maven-plugin.version}</version>
+            </extension>
+        </extensions>
+        <pluginManagement>
+            <plugins>
+                <!-- protobuf-maven-plugin -->
+                <plugin>
+                    <groupId>org.xolstice.maven.plugins</groupId>
+                    <artifactId>protobuf-maven-plugin</artifactId>
+                    <version>${protobuf-maven-plugin.version}</version>
+                    <extensions>true</extensions>
+                    <executions>
+                        <execution>
+                            <id>protoc-compile</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>compile</goal>
+                                <goal>compile-custom</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>protoc-test-compile</id>
+                            <phase>generate-test-sources</phase>
+                            <goals>
+                                <goal>test-compile</goal>
+                                <goal>test-compile-custom</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <protocArtifact>
+                            com.google.protobuf:protoc:${protoc.version}:exe:${os.detected.classifier}
+                        </protocArtifact>
+                        <attachProtoSources>true</attachProtoSources>
+                        <useArgumentFile>true</useArgumentFile>
+                        <writeDescriptorSet>false</writeDescriptorSet>
+                        <attachDescriptorSet>false</attachDescriptorSet>
+                        <includeDependenciesInDescriptorSet>false</includeDependenciesInDescriptorSet>
+                        <checkStaleness>true</checkStaleness>
+                        <pluginId>grpc-java</pluginId>
+                        <pluginArtifact>
+                            io.grpc:protoc-gen-grpc-java:${grpc-java.version}:exe:${os.detected.classifier}
+                        </pluginArtifact>
+                        <protocPlugins>
+                        </protocPlugins>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

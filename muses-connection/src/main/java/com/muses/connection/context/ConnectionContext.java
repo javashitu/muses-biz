@@ -83,7 +83,7 @@ public class ConnectionContext implements IConnectionContext {
                 .roomId(roomId)
                 .build();
         String token = authenticator.createToken(liveAuthInfo);
-        String httpUrl = String.format(LiveConstant.SOCKET_IO_HTTP_URL, socketIOConfig.getHost(), socketIOConfig.getPort());
+        String httpUrl = String.format(LiveConstant.SOCKET_IO_HTTP_URL, socketIOConfig.getExternalHost());
         String query = String.format(LiveConstant.SOCKET_IO_QUERY, connectionId, roomId, token);
         Map<String, String> map = Maps.newHashMap();
         map.put("url", httpUrl);

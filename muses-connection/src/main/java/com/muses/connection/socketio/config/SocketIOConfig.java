@@ -33,6 +33,8 @@ public class SocketIOConfig {
 
     private Integer port;
 
+    private String externalHost;
+
     private int bossCount;
 
     private int workCount;
@@ -44,6 +46,7 @@ public class SocketIOConfig {
     private int pingTimeout;
 
     private int pingInterval;
+
 
     @Bean
     public SocketIOServer socketIOServer(@Autowired TokenAuthenticator tokenAuthenticator) {

@@ -1,7 +1,6 @@
 package com.muses.service.proxy;
 
-import com.muses.service.grpc.MyHelloGrpc;
-import com.muses.service.grpc.Person;
+import com.muses.service.grpc.*;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Component;
@@ -16,13 +15,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class VideoFileProxy {
 
-    @GrpcClient("muses-engine")
-    private MyHelloGrpc.MyHelloBlockingStub helloBlockingStub;
+    @GrpcClient("muses-recommend")
+    private RecommendServiceGrpc.RecommendServiceBlockingStub recommendServiceGrpc;
 
-    public void convertVideo(){
-        Person person = Person.newBuilder().setName("shitu").setAge(1984).setLength(100).build();
-
-        Person result = helloBlockingStub.sayHello(person);
-        log.info("receive the grpc result {}", result);
+    public void recommendVideo(){
+        RecommendVideoReq recommendVideoReq = RecommendVideoReq.newBuilder().setUserId(9527L).build();
+        RecommendVideoRsp rsp = recommendServiceGrpc.recommendVideo4User(recommendVideoReq);
+        log.info("receive the grpc result {}", rsp.getVideoIdListList());
     }
+
+
 }

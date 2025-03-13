@@ -2,6 +2,7 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+!muses-application/src/main/resources/application-dev.yaml
 
 ### STS ###
 .apt_generated

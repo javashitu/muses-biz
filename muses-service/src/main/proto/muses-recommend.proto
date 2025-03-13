@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+//指定 proto3 版本，这个注释不能放在第一行，否则报错
+
+option java_package = "com.muses.service.grpc";
+
+// 生成多个java文件
+option java_multiple_files = true;
+
+option go_package = "proto_generated/pb";
+
+package pb;
+
+//=================================================请求Req===============================================================
+message RecommendVideoReq {
+    int64 user_id = 1;
+}
+//=================================================请求Req===============================================================
+//=================================================请求Rsp===============================================================
+
+message RecommendVideoRsp {
+    repeated int64 video_id_list = 1;
+}
+// =================================================请求Rsp===============================================================
+// =================================================注册rpc==============================================================
+
+service RecommendService {
+    rpc recommendVideo4User (RecommendVideoReq) returns (RecommendVideoRsp);
+}

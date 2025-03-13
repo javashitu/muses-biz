@@ -137,6 +137,7 @@ public class VideoService implements IVideoService {
     @Override
     public ListVideoResponse recommendVideo(ListVideoRequest request) {
         log.debug("recommend video program for user {} will list all videoProgram", request.getUserId());
+        videoFileProxy.recommendVideo();
         ListVideoResponse response = new ListVideoResponse();
         response.setUserId(response.getUserId());
         List<VideoProgram> videoProgramList = videoProgramRepoService.findAll(request.getPageNum());

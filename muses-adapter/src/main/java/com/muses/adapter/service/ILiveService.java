@@ -23,6 +23,11 @@ public interface ILiveService {
 
     void terminateLive(String liveProgramId);
 
+    /**
+     * 和terminateLive的区别是只会更新program的状态，不会操作实际的live room
+     */
+    void terminateLiveProgram(String liveProgramId);
+
     QueryLiveResponse queryLive(QueryLiveRequest request);
 
     ListLiveResponse listLive(ListLiveRequest request);

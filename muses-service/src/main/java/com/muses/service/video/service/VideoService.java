@@ -181,6 +181,9 @@ public class VideoService implements IVideoService {
             log.info("can't notify video transcode finished, because the video program not available videoProgramId {} ,", message.getVideoProgramId());
             return true;
         }
+        if(StringUtils.isNotBlank(message.getScreenImgFileStoreId())){
+            videoProgram.setCoverStoreId(message.getScreenImgFileStoreId());
+        }
         videoProgram.setTranscodeFlag(true);
         log.info("video has transcode finished, update transcode flag");
         videoProgramRepoService.save(videoProgram);
@@ -263,6 +266,11 @@ public class VideoService implements IVideoService {
         return Program.builder().id(idGenerator.nextProgramId()).userId(request.getUserId()).createType(programCreateTypeEnums.getType()).type(programTypeEnum.getType()).videoProgramId(videoProgram.getId()).relevanceId(programCreateTypeEnums == ProgramCreateTypeEnums.SHARE ? request.getRelevanceProgramId() : StringUtils.EMPTY).state(ProgramStateEnums.CREATE.getState()).pubTime(request.getPubTime() == 0 ? DateTimeUtils.currentTime() : request.getPubTime()).textProgramId(StringUtils.EMPTY).liveProgramId(StringUtils.EMPTY).voteProgramId(StringUtils.EMPTY).activityProgramId(StringUtils.EMPTY).build();
     }
 
+    /**
+     * 没啥卵用，现阶段
+     * @param request
+     * @param programCreateTypeEnums
+     */
     private void shareProgramCheck(PubVideoRequest request, ProgramCreateTypeEnums programCreateTypeEnums) {
         if (programCreateTypeEnums == ProgramCreateTypeEnums.SHARE) {
             if (StringUtils.isBlank(request.getRelevanceProgramId())) {

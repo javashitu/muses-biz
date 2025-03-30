@@ -61,6 +61,10 @@ public class LiveService implements ILiveService {
     private IRtcRoomService rtcRoomService;
 
 
+    @Autowired
+    private LiveDistributeService liveDistributeService;
+
+
     @Override
     public PubLiveResponse pubLive(PubLiveRequest request) {
         String lockKey = LiveFormatterEnums.CREATE_ROOM_DISTRIBUTE_KEY.format(request.getUserId());
@@ -182,6 +186,16 @@ public class LiveService implements ILiveService {
         }
     }
 
+    public void terminateLiveProgram(String liveProgramId){
+        log.info("terminate live program {}", liveProgramId);
+        LiveProgram liveProgram = liveProgramRepoService.findByLiveRoomId(liveProgramId);
+        if (liveProgram == null) {
+            log.error("can't find liveProgram by live room id, live program id {}", liveProgramId);
+            return;
+        }
+        terminateProgram(liveProgram);
+    }
+
     @Override
     public QueryLiveResponse queryLive(QueryLiveRequest request) {
         LiveProgram liveProgram = liveProgramRepoService.findById(request.getLiveProgramId());
@@ -211,6 +225,7 @@ public class LiveService implements ILiveService {
     public ListLiveResponse listLive(ListLiveRequest request) {
         long curDate = DateTimeUtils.getTodayMilliSecond();
         log.info("query param curDate is {}", curDate);
+        //TODO 分布式环境下，可能因为延迟导致房间已经被关闭，但是DB里的记录还是活跃的
         List<LiveProgram> liveProgramList = liveProgramRepoService.findByBeginTimeAndState(request.getPageNum(), curDate, LiveProgramStateEnums.getActiveState());
         ListLiveResponse response = new ListLiveResponse();
         if (CollectionUtils.isEmpty(liveProgramList)) {
@@ -240,6 +255,10 @@ public class LiveService implements ILiveService {
     private List<LiveProgramInfo> convert2LiveProgramInfoList(List<LiveProgram> liveProgramList, String userId) {
         List<LiveProgramInfo> liveProgramInfoList = new ArrayList<>();
         for (LiveProgram liveProgram : liveProgramList) {
+            if(!liveDistributeService.isLiveActive(liveProgram.getLiveRoomId())){
+                log.info("live room has been close,won't add");
+                continue;
+            }
             LiveProgramInfo liveProgramInfo = convert2LiveProgramInfo(liveProgram, userId);
             liveProgramInfoList.add(liveProgramInfo);
         }

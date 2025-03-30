@@ -18,7 +18,7 @@ public enum ProtoTypeEnums {
     PUB(ProtoConstant.PROTO_PUB, "pubRsp", "pubEvent"),
     SUB(ProtoConstant.PROTO_SUB, "subRsp", "subEvent"),
     NEGO(ProtoConstant.PROTO_NEGO, "negoRsp", "negoEvent"),
-    HANGUP(ProtoConstant.PROTO_HANGUP, "hangupRsp", "hangupEvent"),
+    HANGUP(ProtoConstant.PROTO_HANGUP, "hangUpRsp", "hangUpEvent"),
     LEAVE(ProtoConstant.PROTO_LEAVE, "leaveRsp", "leaveEvent"),
     CLOSE(ProtoConstant.PROTO_CLOSE, "closeRsp", "closeEvent"),
     EXPEL(ProtoConstant.PROTO_EXPEL, "expelRsp", "expelEvent"),

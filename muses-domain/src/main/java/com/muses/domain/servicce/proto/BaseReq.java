@@ -28,6 +28,8 @@ import lombok.experimental.SuperBuilder;
         @JsonSubTypes.Type(value = PubReq.class, name = ProtoConstant.PROTO_PUB),
         @JsonSubTypes.Type(value = SubReq.class, name = ProtoConstant.PROTO_SUB),
         @JsonSubTypes.Type(value = NegoReq.class, name = ProtoConstant.PROTO_NEGO),
+        @JsonSubTypes.Type(value = HangUpReq.class, name = ProtoConstant.PROTO_HANGUP),
+        @JsonSubTypes.Type(value = CloseReq.class, name = ProtoConstant.PROTO_CLOSE),
 })
 public abstract class BaseReq {
     protected String protoType;

@@ -80,6 +80,11 @@ public class MediaContext implements IMediaContext {
         connectionContext.broadcast(rtcRoom.getOtherUserIds(exclusionUserId), baseEvent);
     }
 
+    /**
+     * TODO 需要这个方法吗？这种最后一个人退出后关闭房间的逻辑需要做成原子的吗？
+     * @param roomId
+     * @return
+     */
     public boolean closeRoomAfterExit(String roomId) {
         lock.lock();
         try {

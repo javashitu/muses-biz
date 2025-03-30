@@ -24,7 +24,7 @@ public class ProtoConstant {
      */
     public static final String PROTO_NEGO = "nego";
 
-    public static final String PROTO_HANGUP = "hangup";
+    public static final String PROTO_HANGUP = "hangUp";
 
     public static final String PROTO_LEAVE = "leave";
 

@@ -11,10 +11,10 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**
- * @ClassName HangupRequest
+ * @ClassName CloseReq
  * @Description:
  * @Author: java使徒
- * @CreateDate: 2024/9/2 10:15
+ * @CreateDate: 2025/3/21 16:40
  */
 @Data
 @ToString
@@ -23,16 +23,12 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeName(ProtoConstant.PROTO_ENTER)
-public class HangupReq extends BaseReq {
-
-    private boolean pubStreamFlag;
-
+@JsonTypeName(ProtoConstant.PROTO_CLOSE)
+public class CloseReq extends BaseReq {
     private String roomId;
 
     private String userId;
 
     private String userName;
 
-    private String streamId;
 }

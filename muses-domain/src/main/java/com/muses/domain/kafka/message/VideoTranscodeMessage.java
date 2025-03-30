@@ -23,4 +23,8 @@ public class VideoTranscodeMessage {
     private String videoMetaId;
 
     private String pubUserId;
+
+    private String transcodeVideoFileStoreId;
+
+    private String screenImgFileStoreId;
 }

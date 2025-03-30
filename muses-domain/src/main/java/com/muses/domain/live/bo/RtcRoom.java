@@ -59,6 +59,9 @@ public class RtcRoom {
         this.expireTime = expireTime;
     }
 
+    /**
+     * 房间关闭标记，关闭后房间不能再新增任何流和人，可以挂断，退出，因为关闭房间是需要根据流的关系找到发布订阅关系，并且根据这个关系让各个方关闭对应的资源
+     */
     private boolean closeFlag = false;
 
     private Lock lock = new ReentrantLock();
@@ -227,10 +230,10 @@ public class RtcRoom {
     public Map<String, List<SubStream>> hangupPubStream(String pubStreamId) {
         lock.lock();
         try {
-            if (closeFlag) {
-                log.info("room hs been close, can't hangUp this pubStream pubStreamId {}", pubStreamId);
-                return Collections.emptyMap();
-            }
+//            if (closeFlag) {
+//                log.info("room hs been close, can't hangUp this pubStream pubStreamId {}", pubStreamId);
+//                return Collections.emptyMap();
+//            }
             PubStream pubStream = pubStreamMap.remove(pubStreamId);
             if (pubStream == null) {
                 log.info("can't find pubStream of {} ,so can't hangup, maybe stream already hangup", pubStreamId);
@@ -274,10 +277,10 @@ public class RtcRoom {
     public Pair<SubStream, PubStream> hangupSubStream(String subStreamId) {
         lock.lock();
         try {
-            if (closeFlag) {
-                log.info("room hs been close, can't hangUp this subStream subStreamId {}", subStreamId);
-                return null;
-            }
+//            if (closeFlag) {
+//                log.info("room hs been close, can't hangUp this subStream subStreamId {}", subStreamId);
+//                return null;
+//            }
             SubStream subStream = subStreamMap.remove(subStreamId);
             if (subStream == null) {
                 log.warn("can't find sub stream by subStreamId {} ,maybe subStream has destroy ", subStreamId);
@@ -324,10 +327,10 @@ public class RtcRoom {
     public Map<String, List<SubStream>> leaveAndGetSubStream(String userId) {
         lock.lock();
         try {
-            if (closeFlag) {
-                log.info("room has close, can't do leave room");
-                return Collections.emptyMap();
-            }
+//            if (closeFlag) {
+//                log.info("room has close, can't do leave room");
+//                return Collections.emptyMap();
+//            }
             RtcUser rtcUser = userMap.remove(userId);
             if (rtcUser == null) {
                 log.info("no user of {} in room {} ", userId, roomId);

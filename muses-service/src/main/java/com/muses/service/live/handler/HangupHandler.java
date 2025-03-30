@@ -3,7 +3,7 @@ package com.muses.service.live.handler;
 import com.muses.adapter.connection.IConnectionContext;
 import com.muses.domain.live.bo.SubStream;
 import com.muses.domain.servicce.proto.HangupEvent;
-import com.muses.domain.servicce.proto.HangupReq;
+import com.muses.domain.servicce.proto.HangUpReq;
 import com.muses.service.live.context.MediaContext;
 import com.muses.domain.servicce.enums.ProtoTypeEnums;
 import com.muses.domain.live.bo.RtcRoom;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-public class HangupHandler implements RtcHandler<HangupReq> {
+public class HangupHandler implements RtcHandler<HangUpReq> {
 
     @Autowired
     private MediaContext mediaContext;
@@ -39,7 +39,8 @@ public class HangupHandler implements RtcHandler<HangupReq> {
     }
 
     @Override
-    public void handleMsg(HangupReq request) {
+    public void handleMsg(HangUpReq request) {
+        log.info("begin hang up stream 4 user {} ,hang up stream {} ",request.getUserId(), request.getStreamId());
         RtcRoom room = mediaContext.getRoomById(request.getRoomId());
         if (!request.isPubStreamFlag()) {
             room.hangupSubStream(request.getStreamId());
@@ -50,6 +51,7 @@ public class HangupHandler implements RtcHandler<HangupReq> {
             log.info("no user sub pubStream or the pubStream not fund pubStreamId {} ", request.getStreamId());
             return;
         }
+        //推送的是sub流的信息
         userSubMap.forEach((key, value) -> {
             HangupEvent hangupEvent = HangupEvent.builder()
                     .userId(request.getUserId())

@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName LiveServiceImpl
@@ -86,7 +87,7 @@ public class LiveService implements ILiveService {
                     program = buildProgram(request, activeLiveProgram);
                     programRepoService.save(program);
                 }
-            }else{
+            } else {
                 activeLiveProgram = createLive(request);
             }
             return new PubLiveResponse(convert2LiveProgramInfo(activeLiveProgram, request.getUserId()));
@@ -94,6 +95,105 @@ public class LiveService implements ILiveService {
             iDistributeLock.unlock(lockKey);
         }
     }
+
+    @Override
+    public void terminateLive(String liveRoomId, LiveCloseReasonEnums reason) {
+        log.info("terminate live for room {}", liveRoomId);
+        String lockKey = LiveFormatterEnums.UPDATE_ROOM_DISTRIBUTE_KEY.format(liveRoomId);
+
+        if (!iDistributeLock.retryLock(lockKey, 3, 3)) {
+            log.info("can't lock for live room {} ,ignore terminate room", lockKey);
+            throw ServerException.builder().serverErrorCodeEnums(ServerErrorCodeEnums.CANT_CLOSE_LIVE_ROOM).build();
+        }
+        try {
+            LiveProgram liveProgram = liveProgramRepoService.findByLiveRoomId(liveRoomId);
+            if (liveProgram == null) {
+                log.error("can't find liveProgram by live room id, maybe data loss, live room id {}", liveRoomId);
+                return;
+            }
+            if (!LiveProgramStateEnums.isActiveState(liveProgram.getState())) {
+                log.info("liveProgram has close,can't close again, live room id {}", liveRoomId);
+                return;
+            }
+            //TODO 这里需要判断是不是在本服务器上，不是的话需要转发到对应的目标服务器上，现在就只有一台先不做
+            rtcRoomService.closeRtcRoom(liveRoomId, reason);
+            terminateProgram(liveProgram);
+        } finally {
+            iDistributeLock.unlock(lockKey);
+        }
+    }
+
+    @Override
+    public QueryLiveResponse queryLive(QueryLiveRequest request) {
+        LiveProgram liveProgram = liveProgramRepoService.findById(request.getLiveProgramId());
+        if (liveProgram == null) {
+            log.error("no live program for {} ,the query user {}", request.getLiveProgramId(), request.getUserId());
+            throw ServerException.builder().serverErrorCodeEnums(ServerErrorCodeEnums.CANT_FIND_LIVE_PROGRAM).build();
+        }
+        QueryLiveResponse response = QueryLiveResponse.builder()
+                .rtcUserId(request.getUserId())
+                .liveProgramId(liveProgram.getId())
+                .liveRoomId(liveProgram.getLiveRoomId())
+                .roomName(liveProgram.getName())
+                .roomDesc(liveProgram.getDescription())
+                .cover(liveProgram.getCover())
+                .type(liveProgram.getType())
+                .state(liveProgram.getState())
+                .build();
+        if (!LiveProgramStateEnums.isActiveState(liveProgram.getState())) {
+            log.info("live program has terminate , live program id {} ", request.getLiveProgramId());
+            return response;
+        }
+        response.setLiveAddress(rtcRoomService.getRoomAddress(liveProgram.getLiveRoomId(), request.getUserId()));
+        return response;
+    }
+
+    @Override
+    public ListLiveResponse listLive(ListLiveRequest request) {
+        long curDate = DateTimeUtils.getTodayMilliSecond();
+        log.info("query param curDate is {}", curDate);
+        List<LiveProgram> liveProgramList = liveProgramRepoService.findByBeginTimeAndState(request.getPageNum(), curDate, LiveProgramStateEnums.getActiveState());
+        ListLiveResponse response = new ListLiveResponse();
+        if (CollectionUtils.isEmpty(liveProgramList)) {
+            log.error("no live program in show in date {} ,", curDate);
+            return response;
+        }
+        //分布式环境下，可能因为延迟导致房间已经被关闭，但是DB里的记录还是活跃的
+        List<LiveProgram> activeLiveList = liveProgramList.stream().filter(liveProgram -> {
+            if (!liveDistributeService.isLiveActive(liveProgram.getLiveRoomId())) {
+                log.info("live room has been close,won't add,the live is {}", liveProgram.getId());
+                return false;
+            }
+            return true;
+        }).collect(Collectors.toList());
+        List<LiveProgramInfo> liveProgramInfoList = convert2LiveProgramInfoList(activeLiveList, request.getUserId());
+        response.setLiveProgramInfoList(liveProgramInfoList);
+        return response;
+    }
+
+    @Override
+    public ListOtherLiveResponse listOtherLive(ListOtherLiveRequest request) {
+        long curDate = DateTimeUtils.getTodayMilliSecond();
+        log.info("query other live param curDate is {}", curDate);
+        List<LiveProgram> liveProgramList = liveProgramRepoService.findByBeginTimeAndStateAndAnchor(request.getPageNum(), curDate, LiveProgramStateEnums.getActiveState(), request.getUserId());
+        ListOtherLiveResponse response = new ListOtherLiveResponse();
+        if (CollectionUtils.isEmpty(liveProgramList)) {
+            log.error("no other live program in show in date {} ,", curDate);
+            return response;
+        }
+        //分布式环境下，可能因为延迟导致房间已经被关闭，但是DB里的记录还是活跃的
+        List<LiveProgram> activeLiveList = liveProgramList.stream().filter(liveProgram -> {
+            if (!liveDistributeService.isLiveActive(liveProgram.getLiveRoomId())) {
+                log.info("live room has been close,won't add,the live is {}", liveProgram.getId());
+                return false;
+            }
+            return true;
+        }).collect(Collectors.toList());
+        List<LiveProgramInfo> liveProgramInfoList = convert2LiveProgramInfoList(activeLiveList, request.getUserId());
+        response.setLiveProgramInfoList(liveProgramInfoList);
+        return response;
+    }
+
 
     private Program buildProgram(PubLiveRequest request, LiveProgram liveProgram) {
         Program program = Program.builder()
@@ -164,101 +264,10 @@ public class LiveService implements ILiveService {
         return liveProgram;
     }
 
-    @Override
-    public void terminateLive(String liveRoomId) {
-        log.info("terminate live for room {}", liveRoomId);
-        LiveProgram liveProgram = liveProgramRepoService.findByLiveRoomId(liveRoomId);
-        if (liveProgram == null) {
-            log.error("can't find liveProgram by live room id, maybe data loss, live room id {}", liveRoomId);
-            return;
-        }
-        String lockKey = LiveFormatterEnums.UPDATE_ROOM_DISTRIBUTE_KEY.format(liveProgram.getLiveRoomId());
-
-        if (!iDistributeLock.retryLock(lockKey, 3, 3)) {
-            log.info("can't lock for live room {} ,ignore terminate room", lockKey);
-            throw ServerException.builder().serverErrorCodeEnums(ServerErrorCodeEnums.CANT_CLOSE_LIVE_ROOM).build();
-        }
-        try {
-            closeRtcRoom(liveProgram.getLiveRoomId());
-            terminateProgram(liveProgram);
-        } finally {
-            iDistributeLock.unlock(lockKey);
-        }
-    }
-
-    public void terminateLiveProgram(String liveProgramId){
-        log.info("terminate live program {}", liveProgramId);
-        LiveProgram liveProgram = liveProgramRepoService.findByLiveRoomId(liveProgramId);
-        if (liveProgram == null) {
-            log.error("can't find liveProgram by live room id, live program id {}", liveProgramId);
-            return;
-        }
-        terminateProgram(liveProgram);
-    }
-
-    @Override
-    public QueryLiveResponse queryLive(QueryLiveRequest request) {
-        LiveProgram liveProgram = liveProgramRepoService.findById(request.getLiveProgramId());
-        if (liveProgram == null) {
-            log.error("no live program for {} ,the query user {}", request.getLiveProgramId(), request.getUserId());
-            throw ServerException.builder().serverErrorCodeEnums(ServerErrorCodeEnums.CANT_FIND_LIVE_PROGRAM).build();
-        }
-        QueryLiveResponse response = QueryLiveResponse.builder()
-                .rtcUserId(request.getUserId())
-                .liveProgramId(liveProgram.getId())
-                .liveRoomId(liveProgram.getLiveRoomId())
-                .roomName(liveProgram.getName())
-                .roomDesc(liveProgram.getDescription())
-                .cover(liveProgram.getCover())
-                .type(liveProgram.getType())
-                .state(liveProgram.getState())
-                .build();
-        if (!LiveProgramStateEnums.isActiveState(liveProgram.getState())) {
-            log.info("live program has terminate , live program id {} ", request.getLiveProgramId());
-            return response;
-        }
-        response.setLiveAddress(rtcRoomService.getRoomAddress(liveProgram.getLiveRoomId(), request.getUserId()));
-        return response;
-    }
-
-    @Override
-    public ListLiveResponse listLive(ListLiveRequest request) {
-        long curDate = DateTimeUtils.getTodayMilliSecond();
-        log.info("query param curDate is {}", curDate);
-        //TODO 分布式环境下，可能因为延迟导致房间已经被关闭，但是DB里的记录还是活跃的
-        List<LiveProgram> liveProgramList = liveProgramRepoService.findByBeginTimeAndState(request.getPageNum(), curDate, LiveProgramStateEnums.getActiveState());
-        ListLiveResponse response = new ListLiveResponse();
-        if (CollectionUtils.isEmpty(liveProgramList)) {
-            log.error("no live program in show in date {} ,", curDate);
-            return response;
-        }
-        List<LiveProgramInfo> liveProgramInfoList = convert2LiveProgramInfoList(liveProgramList, request.getUserId());
-        response.setLiveProgramInfoList(liveProgramInfoList);
-        return response;
-    }
-
-    @Override
-    public ListOtherLiveResponse listOtherLive(ListOtherLiveRequest request) {
-        long curDate = DateTimeUtils.getTodayMilliSecond();
-        log.info("query other live param curDate is {}", curDate);
-        List<LiveProgram> liveProgramList = liveProgramRepoService.findByBeginTimeAndStateAndAnchor(request.getPageNum(), curDate, LiveProgramStateEnums.getActiveState(), request.getUserId());
-        ListOtherLiveResponse response = new ListOtherLiveResponse();
-        if (CollectionUtils.isEmpty(liveProgramList)) {
-            log.error("no other live program in show in date {} ,", curDate);
-            return response;
-        }
-        List<LiveProgramInfo> liveProgramInfoList = convert2LiveProgramInfoList(liveProgramList, request.getUserId());
-        response.setLiveProgramInfoList(liveProgramInfoList);
-        return response;
-    }
 
     private List<LiveProgramInfo> convert2LiveProgramInfoList(List<LiveProgram> liveProgramList, String userId) {
         List<LiveProgramInfo> liveProgramInfoList = new ArrayList<>();
         for (LiveProgram liveProgram : liveProgramList) {
-            if(!liveDistributeService.isLiveActive(liveProgram.getLiveRoomId())){
-                log.info("live room has been close,won't add");
-                continue;
-            }
             LiveProgramInfo liveProgramInfo = convert2LiveProgramInfo(liveProgram, userId);
             liveProgramInfoList.add(liveProgramInfo);
         }
@@ -286,11 +295,6 @@ public class LiveService implements ILiveService {
 
     public Map<String, Object> queryLiveInfo(String roomId) {
         return rtcRoomService.getRoomInfo(roomId);
-    }
-
-    private void closeRtcRoom(String roomId) {
-        //TODO 这里需要判断是不是在本服务器上，不是的话需要转发到对应的目标服务器上，现在就只有一台先不做
-        rtcRoomService.closeRtcRoom(roomId);
     }
 
     private void terminateProgram(LiveProgram liveProgram) {

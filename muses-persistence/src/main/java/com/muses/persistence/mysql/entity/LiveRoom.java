@@ -16,6 +16,8 @@ import org.apache.commons.lang3.StringUtils;
  * @Description:
  * @Author: java使徒
  * @CreateDate: 2024/10/9 17:14
+ *
+ * 记录直播间里容易变更的统计数据
  */
 @Data
 @ToString

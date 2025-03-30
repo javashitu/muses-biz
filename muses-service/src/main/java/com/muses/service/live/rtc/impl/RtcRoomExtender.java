@@ -105,7 +105,7 @@ public class RtcRoomExtender implements IRtcRoomExtender {
         }
         expireRoomMap.forEach((key, value) -> {
             log.info("room has expired, will be close , roomId {} expire in time {}", key, value.longValue());
-            liveService.terminateLive(key);
+            liveService.terminateLive(key, LiveCloseReasonEnums.NO_USER);
         });
     }
 

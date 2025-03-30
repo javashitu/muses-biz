@@ -1,5 +1,6 @@
 package com.muses.adapter.service;
 
+import com.muses.common.enums.LiveCloseReasonEnums;
 import com.muses.domain.rest.request.ListLiveRequest;
 import com.muses.domain.rest.request.ListOtherLiveRequest;
 import com.muses.domain.rest.request.PubLiveRequest;
@@ -21,12 +22,13 @@ public interface ILiveService {
 
     PubLiveResponse pubLive(PubLiveRequest request);
 
-    void terminateLive(String liveProgramId);
+    void terminateLive(String liveProgramId, LiveCloseReasonEnums reason);
 
     /**
      * 和terminateLive的区别是只会更新program的状态，不会操作实际的live room
+     * 方法太鸡肋，删除掉
      */
-    void terminateLiveProgram(String liveProgramId);
+//    void terminateLiveProgram(String liveProgramId);
 
     QueryLiveResponse queryLive(QueryLiveRequest request);
 

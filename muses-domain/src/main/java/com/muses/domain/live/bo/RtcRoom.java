@@ -383,6 +383,10 @@ public class RtcRoom {
         }
     }
 
+    /**
+     * 清理直房间残留的流信息，清理不清理其实也没什么，反正都能回收，这里主要为了检验之前的操作是不是把所有的流都正确挂断了。
+     * @return
+     */
     public boolean closeCleanRoom() {
         lock.lock();
         try {
@@ -391,11 +395,11 @@ public class RtcRoom {
                 return false;
             }
             subStreamMap.keySet().forEach((subStreamId) -> {
-                log.info("will close subStream by hangup, the subStreamId {}", subStreamId);
+                log.info("in clean room, will close subStream , the subStreamId {}", subStreamId);
                 hangupSubStream(subStreamId);
             });
             pubStreamMap.keySet().forEach((pubStreamId) -> {
-                log.info("when close pubStream by hangup the pubStreamId {}", pubStreamId);
+                log.info("in clean room, will close pubStream ， the pubStreamId {}", pubStreamId);
                 hangupPubStream(pubStreamId);
             });
             return true;
